@@ -1,0 +1,33 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/ecommerce_db
+    username: dev_user
+    password: noah_1@23.Djanor
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
+      validation-timeout: 5000
+      keepalive-time: 30000
+      max-lifetime: 1800000
+      idle-timeout: 600000
+
+  graphql:
+    graphiql:
+      enabled: true
+      path: /graphiql
+    path: /graphql
+    schema:
+      printer:
+        enabled: true
+
+logging:
+  level:
+    com.zaxxer.hikari: INFO  # Shows connection pool activity
+    com.smartcommerce: INFO
+    org.springframework.jdbc.core: INFO
+#logging:
+#  level:
+#    com.ecommerce: DEBUG
+#    org.springframework.jdbc.core: DEBUG  # Shows SQL queries
