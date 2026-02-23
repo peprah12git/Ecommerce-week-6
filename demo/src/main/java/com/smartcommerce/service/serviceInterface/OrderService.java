@@ -119,4 +119,38 @@ public interface OrderService {
      * @throws BusinessException if insufficient stock or order creation fails
      */
     Order checkoutFromCart(int userId);
+    
+    // ============================================================
+    // OPTIMIZED REPORTING QUERIES - User Story 3.2
+    // ============================================================
+    
+    /**
+     * Get orders by status with items (optimized for reporting dashboards)
+     * Uses composite index (status, order_date) and JOIN FETCH
+     *
+     * @param status Order status
+     * @return List of orders with items
+     */
+    List<Order> getOrdersByStatus(String status);
+    
+    /**
+     * Get user orders by status (optimized for user order history filtering)
+     * Uses composite index (user_id, status) and JOIN FETCH
+     *
+     * @param userId User ID
+     * @param status Order status
+     * @return List of orders with items
+     * @throws ResourceNotFoundException if user not found
+     */
+    List<Order> getUserOrdersByStatus(int userId, String status);
+    
+    /**
+     * Get orders within date range (optimized for reporting)
+     * Uses index on order_date and JOIN FETCH
+     *
+     * @param startDate Start date
+     * @param endDate End date
+     * @return List of orders with items in date range
+     */
+    List<Order> getOrdersInDateRange(java.sql.Timestamp startDate, java.sql.Timestamp endDate);
 }

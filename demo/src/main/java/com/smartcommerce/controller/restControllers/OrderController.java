@@ -306,4 +306,81 @@ public class OrderController {
         OrderResponse response = OrderMapper.toOrderResponse(order);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+    
+    // ============================================================
+    // OPTIMIZED REPORTING ENDPOINTS - User Story 3.2
+    // ============================================================
+    
+    /**
+     * Get orders by status (optimized for reporting)
+     * GET /api/orders/status/{status}
+     */
+    @Operation(summary = "Get orders by status", 
+               description = "Retrieves all orders with a specific status (optimized with JOIN FETCH and composite index)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Orders retrieved successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid status")
+    })
+    @GetMapping("/status/{status}")
+    public ResponseEntity<List<OrderResponse>> getOrdersByStatus(
+            @Parameter(description = "Order status (pending, confirmed, processing, shipped, delivered, cancelled)", 
+                       required = true, example = "pending")
+            @PathVariable String status) {
+
+        List<Order> orders = orderService.getOrdersByStatus(status);
+        List<OrderResponse> response = OrderMapper.toOrderResponseList(orders);
+        return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * Get user orders by status (optimized for filtered order history)
+     * GET /api/orders/user/status/{status}
+     */
+    @Operation(summary = "Get user orders by status", 
+               description = "Retrieves user's orders filtered by status (optimized with composite index user_id + status)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "User orders retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @GetMapping("/user/status/{status}")
+    public ResponseEntity<List<OrderResponse>> getUserOrdersByStatus(
+            @RequestAttribute("userId") Integer userId,
+            @Parameter(description = "Order status", required = true, example = "completed")
+            @PathVariable String status) {
+
+        List<Order> orders = orderService.getUserOrdersByStatus(userId, status);
+        List<OrderResponse> response = OrderMapper.toOrderResponseList(orders);
+        return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * Get orders in date range (optimized for reporting)
+     * GET /api/orders/report/date-range
+     */
+    @Operation(summary = "Get orders in date range", 
+               description = "Retrieves orders within a specific date range for reporting (optimized with JOIN FETCH)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Orders retrieved successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid date range")
+    })
+    @GetMapping("/report/date-range")
+    public ResponseEntity<List<OrderResponse>> getOrdersInDateRange(
+            @Parameter(description = "Start date (ISO format: 2026-01-01T00:00:00)", required = true)
+            @org.springframework.web.bind.annotation.RequestParam String startDate,
+            @Parameter(description = "End date (ISO format: 2026-12-31T23:59:59)", required = true)
+            @org.springframework.web.bind.annotation.RequestParam String endDate) {
+
+        // Parse timestamps
+        java.sql.Timestamp start = java.sql.Timestamp.valueOf(
+            startDate.replace("T", " ").substring(0, 19)
+        );
+        java.sql.Timestamp end = java.sql.Timestamp.valueOf(
+            endDate.replace("T", " ").substring(0, 19)
+        );
+
+        List<Order> orders = orderService.getOrdersInDateRange(start, end);
+        List<OrderResponse> response = OrderMapper.toOrderResponseList(orders);
+        return ResponseEntity.ok(response);
+    }
 }

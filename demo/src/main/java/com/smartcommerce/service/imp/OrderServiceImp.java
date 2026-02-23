@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.smartcommerce.exception.BusinessException;
@@ -58,6 +60,7 @@ public class OrderServiceImp implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = false,propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
     public Order createOrder(Order order, List<OrderItem> orderItems) {
         // Validate user exists
         User user = userRepository.findById(order.getUserId())
@@ -123,26 +126,17 @@ public class OrderServiceImp implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public List<Order> getAllOrders() {
-        List<Order> orders = orderRepository.findAll();
-        // Load order items for each order
-        for (Order order : orders) {
-            List<OrderItem> items = orderItemRepository.findByOrderId(order.getOrderId());
-            order.setOrderItems(items);
-        }
-        return orders;
+        // OPTIMIZED: Use JOIN FETCH to load orders with items in single query
+        // Eliminates N+1 query problem
+        return orderRepository.findAllWithItemsOrderByDateDesc();
     }
 
     @Override
     @Transactional(readOnly = true)
     public Order getOrderById(int orderId) {
-        Order order = orderRepository.findById(orderId)
+        // OPTIMIZED: Use JOIN FETCH to load order with items in single query
+        return orderRepository.findByIdWithItems(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId));
-
-        // Load order items
-        List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
-        order.setOrderItems(items);
-
-        return order;
     }
 
     @Override
@@ -153,16 +147,13 @@ public class OrderServiceImp implements OrderService {
             throw new ResourceNotFoundException("User", "id", userId);
         }
 
-        List<Order> orders = orderRepository.findByUserIdOrderByOrderDateDesc(userId);
-        // Load order items for each order
-        for (Order order : orders) {
-            List<OrderItem> items = orderItemRepository.findByOrderId(order.getOrderId());
-            order.setOrderItems(items);
-        }
-        return orders;
+        // OPTIMIZED: Use JOIN FETCH to load orders with items in single query
+        // Uses composite index (user_id, order_date)
+        return orderRepository.findByUserIdWithItemsOrderByDateDesc(userId);
     }
 
     @Override
+    @Transactional(readOnly = false)
     public Order updateOrderStatus(int orderId, String status) {
         // Validate order exists
         Order order = orderRepository.findById(orderId)
@@ -189,6 +180,7 @@ public class OrderServiceImp implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = false)
     public Order cancelOrder(int orderId) {
         // Validate order exists
         Order order = orderRepository.findById(orderId)
@@ -226,6 +218,7 @@ public class OrderServiceImp implements OrderService {
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void deleteOrder(int orderId) {
         // Validate order exists
         if (!orderRepository.existsById(orderId)) {
@@ -241,7 +234,6 @@ public class OrderServiceImp implements OrderService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<OrderItem> getOrderItems(int orderId) {
         // Validate order exists
         if (!orderRepository.existsById(orderId)) {
@@ -315,14 +307,27 @@ public class OrderServiceImp implements OrderService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Page<Order> getAllOrders(Pageable pageable) {
+        // OPTIMIZED: Fetch IDs first, then fetch entities with JOIN FETCH
+        // This avoids pagination + JOIN FETCH issues
         Page<Order> ordersPage = orderRepository.findAll(pageable);
-        // Load order items for each order
-        ordersPage.forEach(order -> {
-            List<OrderItem> items = orderItemRepository.findByOrderId(order.getOrderId());
-            order.setOrderItems(items);
-        });
+        
+        // Extract order IDs from the page
+        List<Integer> orderIds = ordersPage.getContent().stream()
+                .map(Order::getOrderId)
+                .toList();
+        
+        // Fetch orders with items in single query
+        if (!orderIds.isEmpty()) {
+            List<Order> ordersWithItems = orderRepository.findByOrderIdsWithItems(orderIds);
+            // Replace page content with fully loaded orders
+            return ordersPage.map(order -> 
+                ordersWithItems.stream()
+                    .filter(o -> o.getOrderId() == order.getOrderId())
+                    .findFirst()
+                    .orElse(order)
+            );
+        }
         return ordersPage;
     }
 
@@ -334,12 +339,55 @@ public class OrderServiceImp implements OrderService {
             throw new ResourceNotFoundException("User", "id", userId);
         }
 
-        Page<Order> ordersPage = orderRepository.findByUserId(userId, pageable);
-        // Load order items for each order
-        ordersPage.forEach(order -> {
-            List<OrderItem> items = orderItemRepository.findByOrderId(order.getOrderId());
-            order.setOrderItems(items);
-        });
-        return ordersPage;
+        // OPTIMIZED: Fetch IDs first for pagination, then fetch with JOIN FETCH
+        Page<Integer> orderIdsPage = orderRepository.findOrderIdsByUserId(userId, pageable);
+        
+        // Fetch full orders with items in single query
+        if (!orderIdsPage.isEmpty()) {
+            List<Order> ordersWithItems = orderRepository.findByOrderIdsWithItems(
+                orderIdsPage.getContent()
+            );
+            return orderIdsPage.map(orderId -> 
+                ordersWithItems.stream()
+                    .filter(o -> o.getOrderId() == orderId)
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("Order", "id", orderId))
+            );
+        }
+        
+        return Page.empty(pageable);
+    }
+    
+    // ============================================================
+    // OPTIMIZED REPORTING METHODS
+    // ============================================================
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<Order> getOrdersByStatus(String status) {
+        // OPTIMIZED: Uses composite index (status, order_date) and JOIN FETCH
+        // Single query to fetch orders with items
+        return orderRepository.findByStatusWithItems(status);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<Order> getUserOrdersByStatus(int userId, String status) {
+        // Validate user exists
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException("User", "id", userId);
+        }
+        
+        // OPTIMIZED: Uses composite index (user_id, status) and JOIN FETCH
+        // Single query to fetch user's orders by status with items
+        return orderRepository.findByUserIdAndStatusWithItems(userId, status);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<Order> getOrdersInDateRange(java.sql.Timestamp startDate, java.sql.Timestamp endDate) {
+        // OPTIMIZED: Uses index on order_date and JOIN FETCH
+        // Single query for date range reporting
+        return orderRepository.findOrdersInDateRangeWithItems(startDate, endDate);
     }
 }
