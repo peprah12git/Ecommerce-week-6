@@ -324,7 +324,6 @@ public class ProductController {
      */
     @Operation(summary = "Clear product cache", description = "Clears the product cache to force fresh data retrieval")
     @ApiResponse(responseCode = "204", description = "Cache cleared successfully")
-    @RequiredRole("ADMIN")
     @DeleteMapping("/cache")
     public ResponseEntity<Void> clearProductCache() {
         productService.invalidateProductCache();
