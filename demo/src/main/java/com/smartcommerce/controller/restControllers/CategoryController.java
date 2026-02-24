@@ -1,11 +1,8 @@
 package com.smartcommerce.controller.restControllers;
 
-import java.util.List;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -73,54 +70,6 @@ public class CategoryController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(createdCategory);
-    }
-
-    /**
-     * Get all categories
-     * GET /api/categories
-     */
-    @Operation(summary = "Get all categories", description = "Retrieves all product categories")
-    @ApiResponse(responseCode = "200", description = "Categories retrieved successfully")
-    @GetMapping
-    public ResponseEntity<List<Category>> getAllCategories() {
-        List<Category> categories = categoryService.getAllCategories();
-        return ResponseEntity.ok(categories);
-    }
-
-    /**
-     * Get category by ID
-     * GET /api/categories/{id}
-     */
-    @Operation(summary = "Get category by ID", description = "Retrieves a single category by its unique identifier")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Category found"),
-            @ApiResponse(responseCode = "404", description = "Category not found",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    })
-    @GetMapping("/{id}")
-    public ResponseEntity<Category> getCategoryById(
-            @Parameter(description = "Category ID", required = true, example = "1")
-            @PathVariable int id) {
-        Category category = categoryService.getCategoryById(id);
-        return ResponseEntity.ok(category);
-    }
-
-    /**
-     * Get category by name
-     * GET /api/categories/name/{name}
-     */
-    @Operation(summary = "Get category by name", description = "Retrieves a category by its name")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Category found"),
-            @ApiResponse(responseCode = "404", description = "Category not found",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    })
-    @GetMapping("/name/{name}")
-    public ResponseEntity<Category> getCategoryByName(
-            @Parameter(description = "Category name", required = true, example = "Electronics")
-            @PathVariable String name) {
-        Category category = categoryService.getCategoryByName(name);
-        return ResponseEntity.ok(category);
     }
 
     /**
