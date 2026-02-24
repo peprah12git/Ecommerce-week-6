@@ -14,7 +14,6 @@ const graphqlService = {
           productName
           description
           price
-          quantityAvailable
           categoryId
           categoryName
           createdAt
@@ -30,7 +29,7 @@ const graphqlService = {
     const { category, minPrice, maxPrice, searchTerm } = params;
     
     const query = gql`
-      query GetProducts($category: String, $minPrice: Float, $maxPrice: Float, $searchTerm: String) {
+      query productsPaged($category: String, $minPrice: Float, $maxPrice: Float, $searchTerm: String) {
         products(
           category: $category
           minPrice: $minPrice
@@ -41,7 +40,6 @@ const graphqlService = {
           productName
           description
           price
-          quantityAvailable
           categoryId
           categoryName
           createdAt
@@ -69,7 +67,6 @@ const graphqlService = {
           productName
           description
           price
-          quantityAvailable
           categoryId
           categoryName
           createdAt

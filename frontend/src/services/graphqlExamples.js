@@ -17,7 +17,7 @@ export const getCategories = async () => {
 // PROTECTED QUERY - Requires JWT token
 export const getProducts = async () => {
   const query = `
-    query GetProducts {
+    query productsPaged {
       products {
         productId
         productName

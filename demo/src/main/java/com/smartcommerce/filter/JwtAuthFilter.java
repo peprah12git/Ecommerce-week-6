@@ -1,16 +1,22 @@
 package com.smartcommerce.filter;
 
+import java.io.IOException;
+import java.util.Set;
+
+import org.springframework.stereotype.Component;
+
 import com.smartcommerce.security.JwtUtil;
+
 import io.jsonwebtoken.Claims;
-import jakarta.servlet.*;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.util.Set;
 
 @Slf4j
 @Component
@@ -41,8 +47,22 @@ public class JwtAuthFilter implements Filter {
         HttpServletResponse res = (HttpServletResponse) response;
         String path = req.getRequestURI();
 
-        // Set CORS headers
-        res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+        // Set CORS headers - dynamically handle origin
+        String origin = req.getHeader("Origin");
+        Set<String> allowedOrigins = Set.of(
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:5173",
+            "http://localhost:3001"
+        );
+        
+        if (origin != null && allowedOrigins.contains(origin)) {
+            res.setHeader("Access-Control-Allow-Origin", origin);
+        } else if (origin == null) {
+            res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+        }
+        
         res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
         res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
         res.setHeader("Access-Control-Allow-Credentials", "true");
