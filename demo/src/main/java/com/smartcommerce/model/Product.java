@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -49,11 +51,14 @@ public class Product {
     private Timestamp createdAt;
 
     @OneToMany(mappedBy = "productId", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<OrderItem> orderItems;
 
     @OneToMany(mappedBy = "productId", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<CartItem> cartItems;
 
     @OneToMany(mappedBy = "productId", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Review> reviews;
 }

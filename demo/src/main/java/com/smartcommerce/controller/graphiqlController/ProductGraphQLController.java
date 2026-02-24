@@ -10,7 +10,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.smartcommerce.dtos.request.ProductFilterDTO;
 import com.smartcommerce.dtos.response.ProductPageGraphQL;
@@ -196,6 +198,37 @@ public class ProductGraphQLController {
         }
         
         return productService.updateProduct(id, existingProduct, null);
+    }
+
+    // ==================== FIELD RESOLVERS ====================
+
+    /**
+     * Resolve productName field for Product type
+     * Maps Product.name to GraphQL Product.productName
+     */
+    @SchemaMapping(typeName = "Product", field = "productName")
+    public String productName(Product product) {
+        return product.getName();
+    }
+
+    /**
+     * Resolve categoryId field for Product type
+     * Extracts category ID from Product.category
+     */
+    @SchemaMapping(typeName = "Product", field = "categoryId")
+    @Transactional(readOnly = true)
+    public Integer categoryId(Product product) {
+        return product.getCategory() != null ? product.getCategory().getCategoryId() : null;
+    }
+
+    /**
+     * Resolve categoryName field for Product type
+     * Extracts category name from Product.category
+     */
+    @SchemaMapping(typeName = "Product", field = "categoryName")
+    @Transactional(readOnly = true)
+    public String categoryName(Product product) {
+        return product.getCategory() != null ? product.getCategory().getCategoryName() : null;
     }
 
 
