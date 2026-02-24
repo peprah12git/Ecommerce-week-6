@@ -1,13 +1,20 @@
 package com.smartcommerce.service.imp;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.smartcommerce.dao.interfaces.InventoryDaoInterface;
 import com.smartcommerce.model.Inventory;
+import com.smartcommerce.repositories.InventoryRepository;
 import com.smartcommerce.service.serviceInterface.InventoryServiceInterface;
 
 /**
@@ -17,25 +24,26 @@ import com.smartcommerce.service.serviceInterface.InventoryServiceInterface;
 @Service
 public class InventoryServiceImp implements InventoryServiceInterface {
     
-    private final InventoryDaoInterface inventoryDAO;
+    private final InventoryRepository inventoryRepository;
     private Map<Integer, Inventory> inventoryCache;
     private long lastCacheUpdate;
     private static final long CACHE_VALIDITY = 120000; // 2 minutes (inventory changes frequently)
 
     @Autowired
-    public InventoryServiceImp(InventoryDaoInterface inventoryDAO) {
-        this.inventoryDAO = inventoryDAO;
+    public InventoryServiceImp(InventoryRepository inventoryRepository) {
+        this.inventoryRepository = inventoryRepository;
         this.inventoryCache = new HashMap<>();
         this.lastCacheUpdate = 0;
     }
 
     @Override
     public boolean updateInventory(int productId, int quantity) {
-        boolean success = inventoryDAO.updateInventory(productId, quantity);
-        if (success) {
+        int updated = inventoryRepository.updateInventoryQuantity(productId, quantity);
+        if (updated > 0) {
             invalidateCache();
+            return true;
         }
-        return success;
+        return false;
     }
 
     @Override
@@ -46,7 +54,14 @@ public class InventoryServiceImp implements InventoryServiceInterface {
                 return inventoryCache.get(productId);
             }
         }
-        return inventoryDAO.getInventoryByProductId(productId);
+        return inventoryRepository.findByProductId(productId).orElse(null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Inventory> getAllInventory(Pageable pageable) {
+        // For paginated results, skip cache and query database directly
+        return inventoryRepository.findAll(pageable);
     }
 
     @Override
@@ -59,7 +74,7 @@ public class InventoryServiceImp implements InventoryServiceInterface {
         }
 
         System.out.println("✗ Fetching inventory from database");
-        List<Inventory> items = inventoryDAO.getAllInventory();
+        List<Inventory> items = inventoryRepository.findAll();
         inventoryCache = items.stream()
                 .collect(Collectors.toMap(Inventory::getProductId, i -> i));
         lastCacheUpdate = now;
@@ -67,8 +82,14 @@ public class InventoryServiceImp implements InventoryServiceInterface {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Page<Inventory> getLowStockItems(int threshold, Pageable pageable) {
+        return inventoryRepository.findLowStockItems(threshold, pageable);
+    }
+
+    @Override
     public List<Inventory> getLowStockItems(int threshold) {
-        return inventoryDAO.getLowStockItems(threshold);
+        return inventoryRepository.findLowStockItems(threshold);
     }
 
     /**

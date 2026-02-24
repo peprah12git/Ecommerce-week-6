@@ -1,12 +1,31 @@
 package com.smartcommerce.controller.restControllers;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.smartcommerce.dtos.request.UpdateProductQuantityDTO;
 import com.smartcommerce.dtos.response.InventoryResponse;
+import com.smartcommerce.dtos.response.PagedResponse;
 import com.smartcommerce.exception.ErrorResponse;
 import com.smartcommerce.exception.ValidationErrorResponse;
 import com.smartcommerce.model.Inventory;
 import com.smartcommerce.security.RequiredRole;
 import com.smartcommerce.service.serviceInterface.InventoryServiceInterface;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,11 +34,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * REST Controller for Inventory management
@@ -50,6 +64,24 @@ public class InventoryController {
                 .map(this::toInventoryResponse)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
+    }
+
+    /**
+     * Get all inventory items with pagination
+     * GET /api/inventory/paged?page=0&size=10&sort=quantityAvailable,asc
+     */
+    @Operation(summary = "Get all inventory (paginated)", 
+               description = "Retrieves all inventory items with pagination. Default page size is 10, sorted by quantity available ascending.")
+    @ApiResponse(responseCode = "200", description = "Paginated inventory items retrieved successfully")
+    @GetMapping("/paged")
+    public ResponseEntity<PagedResponse<InventoryResponse>> getAllInventoryPaged(
+            @PageableDefault(size = 10, sort = "quantityAvailable", direction = Sort.Direction.ASC) Pageable pageable) {
+        
+        Page<Inventory> inventoryPage = inventoryService.getAllInventory(pageable);
+        Page<InventoryResponse> responsePage = inventoryPage.map(this::toInventoryResponse);
+        PagedResponse<InventoryResponse> pagedResponse = PagedResponse.of(responsePage);
+
+        return ResponseEntity.ok(pagedResponse);
     }
 
     /**
@@ -85,6 +117,26 @@ public class InventoryController {
                 .map(this::toInventoryResponse)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
+    }
+
+    /**
+     * Get low stock items with pagination
+     * GET /api/inventory/low-stock/paged?threshold=10&page=0&size=10&sort=quantityAvailable,asc
+     */
+    @Operation(summary = "Get low stock items (paginated)", 
+               description = "Retrieves products with stock below threshold with pagination. Default page size is 10.")
+    @ApiResponse(responseCode = "200", description = "Paginated low stock items retrieved successfully")
+    @GetMapping("/low-stock/paged")
+    public ResponseEntity<PagedResponse<InventoryResponse>> getLowStockItemsPaged(
+            @Parameter(description = "Stock threshold", example = "10")
+            @RequestParam(defaultValue = "10") int threshold,
+            @PageableDefault(size = 10, sort = "quantityAvailable", direction = Sort.Direction.ASC) Pageable pageable) {
+        
+        Page<Inventory> inventoryPage = inventoryService.getLowStockItems(threshold, pageable);
+        Page<InventoryResponse> responsePage = inventoryPage.map(this::toInventoryResponse);
+        PagedResponse<InventoryResponse> pagedResponse = PagedResponse.of(responsePage);
+
+        return ResponseEntity.ok(pagedResponse);
     }
 
     /**
