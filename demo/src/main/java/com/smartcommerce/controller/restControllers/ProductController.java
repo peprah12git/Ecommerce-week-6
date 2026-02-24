@@ -1,5 +1,21 @@
 package com.smartcommerce.controller.restControllers;
 
+import java.math.BigDecimal;
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.smartcommerce.dtos.request.CreateProductDTO;
 import com.smartcommerce.dtos.request.ProductFilterDTO;
 import com.smartcommerce.dtos.request.UpdateProductDTO;
@@ -13,6 +29,7 @@ import com.smartcommerce.security.RequiredRole;
 import com.smartcommerce.service.serviceInterface.ProductService;
 import com.smartcommerce.utils.ProductMapper;
 import com.smartcommerce.validation.ValidSortDirection;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -21,12 +38,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.math.BigDecimal;
-import java.util.List;
 
 /**
  * REST Controller for Product management
@@ -305,14 +316,14 @@ public class ProductController {
     }
 
     /**
-     * Invalidate product cache
-     * POST /api/products/cache/invalidate
+     * Clear product cache
+     * DELETE /api/products/cache
      */
-    @Operation(summary = "Invalidate product cache", description = "Clears the product cache to force fresh data retrieval")
-    @ApiResponse(responseCode = "200", description = "Cache invalidated successfully")
-    @PostMapping("/cache/invalidate")
-    public ResponseEntity<Void> invalidateCache() {
+    @Operation(summary = "Clear product cache", description = "Clears the product cache to force fresh data retrieval")
+    @ApiResponse(responseCode = "204", description = "Cache cleared successfully")
+    @DeleteMapping("/cache")
+    public ResponseEntity<Void> clearProductCache() {
         productService.invalidateProductCache();
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 }

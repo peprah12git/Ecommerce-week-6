@@ -1,5 +1,18 @@
 package com.smartcommerce.controller.restControllers;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.smartcommerce.dtos.request.UpdateProductQuantityDTO;
 import com.smartcommerce.dtos.response.InventoryResponse;
 import com.smartcommerce.exception.ErrorResponse;
@@ -7,6 +20,7 @@ import com.smartcommerce.exception.ValidationErrorResponse;
 import com.smartcommerce.model.Inventory;
 import com.smartcommerce.security.RequiredRole;
 import com.smartcommerce.service.serviceInterface.InventoryServiceInterface;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,11 +29,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * REST Controller for Inventory management
@@ -140,7 +149,7 @@ public class InventoryController {
 
     /**
      * Add stock to a product
-     * POST /api/inventory/{productId}/add-stock
+     * POST /api/inventory/{productId}/stock-additions
      */
     @Operation(summary = "Add stock to product", description = "Increases the stock quantity by the specified amount")
     @ApiResponses({
@@ -150,7 +159,7 @@ public class InventoryController {
             @ApiResponse(responseCode = "404", description = "Product not found",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @PostMapping("/{productId}/add-stock")
+    @PostMapping("/{productId}/stock-additions")
     @RequiredRole("ADMIN")
     public ResponseEntity<Void> addStock(
             @Parameter(description = "Product ID", required = true, example = "1")
@@ -162,7 +171,7 @@ public class InventoryController {
 
     /**
      * Reduce stock from a product
-     * POST /api/inventory/{productId}/reduce-stock
+     * POST /api/inventory/{productId}/stock-reductions
      */
     @Operation(summary = "Reduce stock from product", description = "Decreases the stock quantity by the specified amount")
     @ApiResponses({
@@ -172,7 +181,7 @@ public class InventoryController {
             @ApiResponse(responseCode = "404", description = "Product not found",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @PostMapping("/{productId}/reduce-stock")
+    @PostMapping("/{productId}/stock-reductions")
     @RequiredRole("ADMIN")
     public ResponseEntity<Void> reduceStock(
             @Parameter(description = "Product ID", required = true, example = "1")
