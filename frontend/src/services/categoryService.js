@@ -12,12 +12,6 @@ const CategoryService = {
     return await graphqlService.getCategoryById(id);
   },
 
-  // Get category by name
-  getCategoryByName: async (name) => {
-    const response = await api.get(`/categories/name/${encodeURIComponent(name)}`);
-    return response.data;
-  },
-
   // Create new category
   createCategory: async (categoryData) => {
     const response = await api.post('/categories', categoryData);

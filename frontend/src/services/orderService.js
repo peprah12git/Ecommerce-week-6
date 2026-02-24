@@ -31,7 +31,7 @@ const OrderService = {
     return response.data;
   },
 
-  // Cancel order (use DELETE on cancellation resource)
+  // Cancel order (DELETE cancellation resource)
   cancelOrder: async (orderId) => {
     const response = await api.delete(`/orders/${orderId}/cancellation`);
     return response.data;
@@ -48,7 +48,7 @@ const OrderService = {
     return response.data;
   },
 
-  // Checkout from cart (create order from cart)
+  // Create order from cart
   checkoutFromCart: async (userId) => {
     const response = await api.post(`/orders/from-cart`);
     return response.data;

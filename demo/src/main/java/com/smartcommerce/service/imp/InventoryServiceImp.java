@@ -115,7 +115,8 @@ public class InventoryServiceImp implements InventoryServiceInterface {
      */
     @Override
     public boolean reduceStock(int productId, int quantity) {
-        Inventory inv = getInventoryByProductId(productId);
+        // Get fresh data from database, not cache
+        Inventory inv = inventoryDAO.getInventoryByProductId(productId);
         if (inv != null && inv.getQuantityAvailable() >= quantity) {
             int newQuantity = inv.getQuantityAvailable() - quantity;
             return updateInventory(productId, newQuantity);
@@ -128,7 +129,8 @@ public class InventoryServiceImp implements InventoryServiceInterface {
      */
     @Override
     public boolean addStock(int productId, int quantity) {
-        Inventory inv = getInventoryByProductId(productId);
+        // Get fresh data from database, not cache
+        Inventory inv = inventoryDAO.getInventoryByProductId(productId);
         if (inv != null) {
             int newQuantity = inv.getQuantityAvailable() + quantity;
             return updateInventory(productId, newQuantity);

@@ -205,24 +205,5 @@ public class ProductGraphQLController {
         return productService.updateProduct(id, existingProduct);
     }
 
-    /**
-     * Update product quantity
-     * GraphQL Mutation: updateProductQuantity(id: Int!, quantity: Int!): Product!
-     */
-    @MutationMapping
-    public Product updateProductQuantity(
-            @Argument int id,
-            @Argument int quantity) {
-        return productService.updateProductQuantity(id, quantity);
-    }
 
-    /**
-     * Delete a product
-     * GraphQL Mutation: deleteProduct(id: Int!): Boolean!
-     */
-    @MutationMapping
-    public boolean deleteProduct(@Argument int id) {
-        productService.deleteProduct(id);
-        return true;
-    }
 }
