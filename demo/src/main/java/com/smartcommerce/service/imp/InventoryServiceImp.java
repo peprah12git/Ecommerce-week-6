@@ -1,6 +1,10 @@
 package com.smartcommerce.service.imp;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,7 +98,8 @@ public class InventoryServiceImp implements InventoryServiceInterface {
      */
     @Override
     public boolean reduceStock(int productId, int quantity) {
-        Inventory inv = getInventoryByProductId(productId);
+        // Get fresh data from database, not cache
+        Inventory inv = inventoryDAO.getInventoryByProductId(productId);
         if (inv != null && inv.getQuantityAvailable() >= quantity) {
             int newQuantity = inv.getQuantityAvailable() - quantity;
             return updateInventory(productId, newQuantity);
@@ -107,7 +112,8 @@ public class InventoryServiceImp implements InventoryServiceInterface {
      */
     @Override
     public boolean addStock(int productId, int quantity) {
-        Inventory inv = getInventoryByProductId(productId);
+        // Get fresh data from database, not cache
+        Inventory inv = inventoryDAO.getInventoryByProductId(productId);
         if (inv != null) {
             int newQuantity = inv.getQuantityAvailable() + quantity;
             return updateInventory(productId, newQuantity);
