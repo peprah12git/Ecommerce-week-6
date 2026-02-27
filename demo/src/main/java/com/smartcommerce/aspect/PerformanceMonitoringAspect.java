@@ -98,7 +98,7 @@ public class PerformanceMonitoringAspect {
         
         if (executionTime > PERFORMANCE_THRESHOLD_MS) {
             // Log warning for slow executions
-            logger.warn("⚠️ [{}] SLOW EXECUTION: {} took {}ms (threshold: {}ms) {}",
+            logger.warn("️ [{}] SLOW EXECUTION: {} took {}ms (threshold: {}ms) {}",
                     layer,
                     methodName,
                     executionTime,
