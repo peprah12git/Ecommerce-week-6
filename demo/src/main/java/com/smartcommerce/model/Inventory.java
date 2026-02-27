@@ -1,16 +1,18 @@
 package com.smartcommerce.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.sql.Timestamp;
 
 @Entity
-@Table(name = "Inventory")
-@Data
+@Table(name = "Inventory", indexes = {
+        @Index(name = "idx_inventory_product", columnList = "product_id"),
+        @Index(name = "idx_inventory_quantity", columnList = "quantity_available")
+})
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Inventory {

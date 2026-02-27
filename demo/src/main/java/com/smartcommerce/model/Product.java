@@ -5,19 +5,18 @@ import java.sql.Timestamp;
 import java.util.List;
 
 import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "Products", indexes = {
     @Index(name = "idx_products_name", columnList = "name"),
     @Index(name = "idx_products_category", columnList = "category_id")
 })
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Product {

@@ -56,7 +56,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "products", key = "'all'")
+    @Cacheable(value = "products")
     public List<Product> getAllProducts() {
         return productRepository.findAll();
     }
