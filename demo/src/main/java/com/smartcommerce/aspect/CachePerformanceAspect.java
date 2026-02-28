@@ -74,7 +74,7 @@ public class CachePerformanceAspect {
             long executionTime = System.currentTimeMillis() - startTime;
 
             if (executionTime < CACHE_HIT_THRESHOLD_MS) {
-                cacheHitCount++;
+                cacheHitCount++;    
                 logger.info("CACHE HIT - Method: {} | Cache: {} | ExecutionTime: {}ms | TotalHits: {}",
                         methodName, cacheName, executionTime, cacheHitCount);
             } else {

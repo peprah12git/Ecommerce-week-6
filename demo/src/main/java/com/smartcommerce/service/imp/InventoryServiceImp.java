@@ -139,4 +139,5 @@ public class InventoryServiceImp implements InventoryServiceInterface {
         return updateInventory(productId, quantity);
     }
 
+
 }
