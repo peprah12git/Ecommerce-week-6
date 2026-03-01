@@ -74,10 +74,10 @@ const InventoryAdmin = () => {
     switch (filter) {
       case 'low':
         return products.filter(
-          (p) => p.quantityAvailable > 0 && p.quantityAvailable <= LOW_STOCK_THRESHOLD
+          (p) => p.inventory?.quantityAvailable > 0 && p.inventory?.quantityAvailable <= LOW_STOCK_THRESHOLD
         );
       case 'out':
-        return products.filter((p) => p.quantityAvailable === 0);
+        return products.filter((p) => p.inventory?.quantityAvailable === 0);
       default:
         return products;
     }
@@ -91,11 +91,11 @@ const InventoryAdmin = () => {
 
   const stats = {
     total: products.length,
-    inStock: products.filter((p) => p.quantityAvailable > LOW_STOCK_THRESHOLD).length,
+    inStock: products.filter((p) => p.inventory?.quantityAvailable > LOW_STOCK_THRESHOLD).length,
     lowStock: products.filter(
-      (p) => p.quantityAvailable > 0 && p.quantityAvailable <= LOW_STOCK_THRESHOLD
+      (p) => p.inventory?.quantityAvailable > 0 && p.inventory?.quantityAvailable <= LOW_STOCK_THRESHOLD
     ).length,
-    outOfStock: products.filter((p) => p.quantityAvailable === 0).length,
+    outOfStock: products.filter((p) => p.inventory?.quantityAvailable === 0).length,
   };
 
   const filteredProducts = getFilteredProducts();
@@ -199,7 +199,7 @@ const InventoryAdmin = () => {
                 </thead>
                 <tbody>
                   {filteredProducts.map((product) => {
-                    const status = getStockStatus(product.quantityAvailable);
+                    const status = getStockStatus(product.inventory?.quantityAvailable);
                     return (
                       <tr key={product.productId}>
                         <td>
@@ -213,7 +213,7 @@ const InventoryAdmin = () => {
                           ${product.price?.toFixed(2) || '0.00'}
                         </td>
                         <td>
-                          <span className="quantity">{product.quantityAvailable || 0}</span>
+                          <span className="quantity">{product.inventory?.quantityAvailable || 0}</span>
                         </td>
                         <td>
                           <span
@@ -255,7 +255,7 @@ const InventoryAdmin = () => {
           <div className="update-form">
             <div className="product-header">
               <h4>{updateModal.product.productName}</h4>
-              <p>Current stock: {updateModal.product.quantityAvailable || 0}</p>
+              <p>Current stock: {updateModal.product.inventory?.quantityAvailable || 0}</p>
             </div>
 
             <div className="mode-tabs" style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>

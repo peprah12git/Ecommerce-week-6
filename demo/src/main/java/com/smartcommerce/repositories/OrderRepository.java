@@ -21,40 +21,46 @@ import jakarta.persistence.QueryHint;
 public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     @Query("SELECT DISTINCT o FROM Order o " +
-            "LEFT JOIN FETCH o.orderItems " +
+            "LEFT JOIN FETCH o.orderItems oi " +
+            "LEFT JOIN FETCH oi.product " +
             "WHERE o.orderId = :orderId")
     @QueryHints(@QueryHint(name = "hibernate.query.passDistinctThrough", value = "false"))
     Optional<Order> findByIdWithItems(@Param("orderId") int orderId);
 
     @Query("SELECT DISTINCT o FROM Order o " +
-            "LEFT JOIN FETCH o.orderItems " +
+            "LEFT JOIN FETCH o.orderItems oi " +
+            "LEFT JOIN FETCH oi.product " +
             "ORDER BY o.orderDate DESC")
     @QueryHints(@QueryHint(name = "hibernate.query.passDistinctThrough", value = "false"))
     List<Order> findAllWithItemsOrderByDateDesc();
 
     @Query("SELECT DISTINCT o FROM Order o " +
-            "LEFT JOIN FETCH o.orderItems " +
+            "LEFT JOIN FETCH o.orderItems oi " +
+            "LEFT JOIN FETCH oi.product " +
             "WHERE o.user.userId = :userId " +
             "ORDER BY o.orderDate DESC")
     @QueryHints(@QueryHint(name = "hibernate.query.passDistinctThrough", value = "false"))
     List<Order> findByUserIdWithItemsOrderByDateDesc(@Param("userId") int userId);
 
     @Query("SELECT DISTINCT o FROM Order o " +
-            "LEFT JOIN FETCH o.orderItems " +
+            "LEFT JOIN FETCH o.orderItems oi " +
+            "LEFT JOIN FETCH oi.product " +
             "WHERE o.status = :status " +
             "ORDER BY o.orderDate DESC")
     @QueryHints(@QueryHint(name = "hibernate.query.passDistinctThrough", value = "false"))
     List<Order> findByStatusWithItems(@Param("status") String status);
 
     @Query("SELECT DISTINCT o FROM Order o " +
-            "LEFT JOIN FETCH o.orderItems " +
+            "LEFT JOIN FETCH o.orderItems oi " +
+            "LEFT JOIN FETCH oi.product " +
             "WHERE o.user.userId = :userId AND o.status = :status " +
             "ORDER BY o.orderDate DESC")
     @QueryHints(@QueryHint(name = "hibernate.query.passDistinctThrough", value = "false"))
     List<Order> findByUserIdAndStatusWithItems(@Param("userId") int userId, @Param("status") String status);
 
     @Query("SELECT DISTINCT o FROM Order o " +
-            "LEFT JOIN FETCH o.orderItems " +
+            "LEFT JOIN FETCH o.orderItems oi " +
+            "LEFT JOIN FETCH oi.product " +
             "WHERE o.orderDate BETWEEN :startDate AND :endDate " +
             "ORDER BY o.orderDate DESC")
     @QueryHints(@QueryHint(name = "hibernate.query.passDistinctThrough", value = "false"))
@@ -69,7 +75,8 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     Page<Integer> findOrderIdsByUserId(@Param("userId") int userId, Pageable pageable);
 
     @Query("SELECT DISTINCT o FROM Order o " +
-            "LEFT JOIN FETCH o.orderItems " +
+            "LEFT JOIN FETCH o.orderItems oi " +
+            "LEFT JOIN FETCH oi.product " +
             "WHERE o.orderId IN :orderIds " +
             "ORDER BY o.orderDate DESC")
     @QueryHints(@QueryHint(name = "hibernate.query.passDistinctThrough", value = "false"))

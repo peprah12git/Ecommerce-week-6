@@ -12,6 +12,7 @@ const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
+  const [pagination, setPagination] = useState({ page: 0, size: 10, totalPages: 0, totalElements: 0 });
   const { categories } = useApp();
 
   // Filter states
@@ -30,19 +31,27 @@ const Products = () => {
     try {
       const params = {
         ...filters,
+        page: pagination.page,
+        size: pagination.size,
         minPrice: filters.minPrice ? parseFloat(filters.minPrice) : undefined,
         maxPrice: filters.maxPrice ? parseFloat(filters.maxPrice) : undefined,
         inStock: filters.inStock === 'true' ? true : filters.inStock === 'false' ? false : undefined,
       };
 
       const response = await ProductService.getProducts(params);
-      setProducts(Array.isArray(response) ? response : []);
+      console.log('Response:', response); // Debug log
+      setProducts(response.content || []);
+      setPagination(prev => ({
+        ...prev,
+        totalPages: response.totalPages || 0,
+        totalElements: response.totalElements || 0
+      }));
     } catch (error) {
       console.error('Failed to fetch products:', error);
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [filters, pagination.page, pagination.size]);
 
   useEffect(() => {
     fetchProducts();
@@ -73,6 +82,7 @@ const Products = () => {
       searchTerm: '',
       inStock: '',
     });
+    setPagination(prev => ({ ...prev, page: 0 }));
   };
 
   const hasActiveFilters =
@@ -84,7 +94,7 @@ const Products = () => {
         <div className="products-header">
           <div>
             <h1>Products</h1>
-            <p>{products.length} products found</p>
+            <p>{pagination.totalElements} products found</p>
           </div>
 
           <div className="products-actions">
@@ -206,11 +216,31 @@ const Products = () => {
             )}
           </div>
         ) : (
-          <div className="products-grid">
-            {products.map((product) => (
-              <ProductCard key={product.productId} product={product} />
-            ))}
-          </div>
+          <>
+            <div className="products-grid">
+              {products.map((product) => (
+                <ProductCard key={product.productId} product={product} />
+              ))}
+            </div>
+            
+            {pagination.totalPages > 1 && (
+              <div className="pagination">
+                <button 
+                  disabled={pagination.page === 0}
+                  onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
+                >
+                  Previous
+                </button>
+                <span>Page {pagination.page + 1} of {pagination.totalPages}</span>
+                <button 
+                  disabled={pagination.page >= pagination.totalPages - 1}
+                  onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

@@ -145,8 +145,6 @@ public class ProductServiceImpl implements ProductService {
      * This method is kept for filter compatibility but does not filter by stock.
      */
     private boolean matchesStockStatus(Boolean inStock) {
-        // Always return true since stock is managed separately in Inventory table
-        // The inStock parameter is kept for future enhancement if needed
         return inStock == null || true;
     }
 
@@ -256,7 +254,6 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public Page<Product> getProductsWithFilters(Pageable pageable, ProductFilterDTO filters) {
-        // If no filters, use repository pagination directly
         if (filters == null || !filters.hasFilters()) {
             return productRepository.findAll(pageable);
         }

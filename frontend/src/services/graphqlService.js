@@ -5,45 +5,64 @@ const GRAPHQL_URL = process.env.REACT_APP_GRAPHQL_URL || 'http://localhost:8080/
 const client = new GraphQLClient(GRAPHQL_URL);
 
 const graphqlService = {
-  // Fetch all products
-  getAllProducts: async () => {
+  // Fetch all products with pagination
+  getAllProducts: async (page = 0, size = 10) => {
     const query = gql`
-      query {
-        products {
-          productId
-          productName
-          description
-          price
-          categoryId
-          categoryName
-          createdAt
-
+      query GetProductsPaged($page: Int, $size: Int) {
+        productsPaged(page: $page, size: $size) {
+          content {
+            productId
+            productName
+            description
+            price
+            categoryId
+            categoryName
+            createdAt
+            inventory {
+              quantityAvailable
+            }
+          }
+          page
+          size
+          totalElements
+          totalPages
         }
       }
     `;
-    const data = await client.request(query);
-    return data.products;
+    const data = await client.request(query, { page, size });
+    return data.productsPaged;
   },
 
-  // Fetch products with filters
+  // Fetch products with filters and pagination
   getProducts: async (params = {}) => {
-    const { category, minPrice, maxPrice, searchTerm } = params;
+    const { category, minPrice, maxPrice, searchTerm, page = 0, size = 10 } = params;
     
     const query = gql`
-      query productsPaged($category: String, $minPrice: Float, $maxPrice: Float, $searchTerm: String) {
-        products(
+      query GetProductsPaged($category: String, $minPrice: Float, $maxPrice: Float, $searchTerm: String, $page: Int, $size: Int) {
+        productsPaged(
           category: $category
           minPrice: $minPrice
           maxPrice: $maxPrice
           searchTerm: $searchTerm
+          page: $page
+          size: $size
         ) {
-          productId
-          productName
-          description
-          price
-          categoryId
-          categoryName
-          createdAt
+          content {
+            productId
+            productName
+            description
+            price
+            categoryId
+            categoryName
+            createdAt
+            inventory {
+              quantityAvailable
+            }
+          }
+          page
+          size
+          totalElements
+          totalPages
         }
       }
     `;
@@ -53,10 +72,12 @@ const graphqlService = {
       minPrice: minPrice ? parseFloat(minPrice) : null,
       maxPrice: maxPrice ? parseFloat(maxPrice) : null,
       searchTerm: searchTerm || null,
+      page,
+      size,
     };
     
     const data = await client.request(query, variables);
-    return data.products;
+    return data.productsPaged;
   },
 
   // Fetch single product by ID
