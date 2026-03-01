@@ -31,6 +31,11 @@ public class ProductMapper {
             response.setCategoryName(product.getCategory().getCategoryName());
         }
         
+        // Set stock from inventory
+        if (product.getInventory() != null) {
+            response.setStock(product.getInventory().getQuantityAvailable());
+        }
+        
         response.setCreatedAt(product.getCreatedAt());
 
         return response;

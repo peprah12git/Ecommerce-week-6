@@ -84,8 +84,7 @@ public class CartItemServiceImp implements CartItemService {
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User", "id", userId);
         }
-        // FIXED: findByUser_UserId
-        return cartItemRepository.findByUser_UserId(userId);
+        return cartItemRepository.findByUserIdWithProduct(userId);
     }
 
     @Override

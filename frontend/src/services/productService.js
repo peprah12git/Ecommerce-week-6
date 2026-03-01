@@ -16,28 +16,21 @@ const ProductService = {
       minPrice,
       maxPrice,
       searchTerm,
-
+      stock,
+      inStock,
+      page = 0,
+      size = 10
     } = params;
 
-    // Use GraphQL for simple filtering (no sorting/inStock filter)
-    if (sortBy === 'productId' && sortDirection === 'ASC' && !inStock) {
-      return await graphqlService.getProducts({ category, minPrice, maxPrice, searchTerm });
-    }
-
-    // Use REST for complex queries with sorting and inStock filter
-    const queryParams = new URLSearchParams({
-      sortBy,
-      sortDirection,
+    // Use GraphQL for queries
+    return await graphqlService.getProducts({ 
+      category, 
+      minPrice, 
+      maxPrice, 
+      searchTerm,
+      page,
+      size
     });
-
-    if (category) queryParams.append('category', category);
-    if (minPrice) queryParams.append('minPrice', minPrice.toString());
-    if (maxPrice) queryParams.append('maxPrice', maxPrice.toString());
-    if (searchTerm) queryParams.append('searchTerm', searchTerm);
-    if (inStock !== undefined) queryParams.append('inStock', inStock.toString());
-
-    const response = await api.get(`/products?${queryParams}`);
-    return response.data;
   },
 
   // Get single product by ID - USE GRAPHQL

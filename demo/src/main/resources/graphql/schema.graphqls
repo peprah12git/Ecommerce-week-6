@@ -4,8 +4,13 @@ type Product {
     description: String
     price: Float!
     categoryId: Int!
+    inventory: Inventory !
     categoryName: String
     createdAt: String
+}
+type Inventory {
+    quantityAvailable: Int
+    lastUpdated: String
 }
 
 # Paginated response type for products
